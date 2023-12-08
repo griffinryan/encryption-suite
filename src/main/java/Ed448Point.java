@@ -7,7 +7,7 @@ import java.util.Arrays;
 
 public class Ed448Point {
     
-    private static final BigInteger P = new BigInteger("2").pow(448).subtract(new BigInteger("2").pow(224)).subtract(BigInteger.ONE);
+    public static final BigInteger P = new BigInteger("2").pow(448).subtract(new BigInteger("2").pow(224)).subtract(BigInteger.ONE);
     private static final BigInteger D = new BigInteger("-39081");
     private static final BigInteger Y0 = P.subtract(BigInteger.valueOf(3));
     private static final BigInteger X0 = calculateX0(Y0);

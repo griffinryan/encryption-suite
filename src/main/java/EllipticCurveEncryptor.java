@@ -20,6 +20,52 @@ public class EllipticCurveEncryptor {
 
     public static final Ed448Point basePoint = new Ed448Point();
 
+    public static byte[] signData(byte[] data, BigInteger privateKey) throws Exception {
+        SecureRandom random = new SecureRandom();
+        // Step 1: Generate random scalar k
+        BigInteger k = new BigInteger(448, random);
+        // Step 2: Compute R = k * G
+        Ed448Point R = basePoint.scalarMultiply(k);
+        // Step 3: Compute hash e = H(R || publicKey || data)
+        BigInteger e = hashData(concatenate(R.toBytes(), derivePublicKey(privateKey).toBytes(), data));
+        // Step 4: Compute s = k - e * privateKey
+        BigInteger s = k.subtract(e.multiply(privateKey)).mod(Ed448Point.P);
+
+        // Combine R and s into a signature (this is a simplified example)
+        return concatenate(R.toBytes(), s.toByteArray());
+    }
+
+    private static BigInteger hashData(byte[] data) throws Exception {
+        Hash hash = new Hash();
+        byte[] hashBytes = hash.computeSHA256(data);
+        return new BigInteger(1, hashBytes);
+    }
+
+    private static Ed448Point derivePublicKey(BigInteger privateKey) {
+        // Assuming basePoint is the base point of the curve
+        return basePoint.scalarMultiply(privateKey);
+    }
+
+    private static byte[] concatenate(byte[]... arrays) {
+        // First, calculate the total length of the combined array
+        int totalLength = 0;
+        for (byte[] array : arrays) {
+            totalLength += array.length;
+        }
+    
+        // Allocate a new array of that total length
+        byte[] combined = new byte[totalLength];
+    
+        // Copy each array into the combined array
+        int start = 0;
+        for (byte[] array : arrays) {
+            System.arraycopy(array, 0, combined, start, array.length);
+            start += array.length;
+        }
+    
+        return combined;
+    }    
+
     public static byte[] decryptData(byte[] encryptedDataWithPublicKeyAndTag, BigInteger recipientPrivateKey) {
         try {
             // Extract the ephemeral public key and encrypted data

@@ -126,8 +126,15 @@ public class Main {
             BigInteger privateKey = EllipticCurveEncryptor.derivePrivateKey(passphrase);
 
             byte[] signature = EllipticCurveEncryptor.signData(data, privateKey);
+
             System.out.println("Signature (hex format): " + bytesToHex(signature));
-            // Optionally, save the signature to a file
+
+            // Prompt for the path to save the signature
+            System.out.println("Enter the path to save the signature file:");
+            String signatureFilePath = scanner.nextLine();
+            Files.write(Paths.get(signatureFilePath), signature);
+
+            System.out.println("Signature has been written to: " + signatureFilePath);
         } catch (Exception e) {
             System.out.println("Signing error: " + e.getMessage());
             e.printStackTrace();
@@ -139,10 +146,16 @@ public class Main {
             System.out.println("Enter the path to the data file to verify:");
             String dataFilePath = scanner.nextLine();
             byte[] data = Files.readAllBytes(Paths.get(dataFilePath));
-
-            // You will also need to read the signature and public key
-            // Assuming these are available or can be input by the user
-
+    
+            System.out.println("Enter the path to the signature file:");
+            String signatureFilePath = scanner.nextLine();
+            byte[] signature = Files.readAllBytes(Paths.get(signatureFilePath));
+    
+            System.out.println("Enter the path to the public key file:");
+            String publicKeyFilePath = scanner.nextLine();
+            byte[] publicKeyBytes = Files.readAllBytes(Paths.get(publicKeyFilePath));
+            Ed448Point publicKey = new Ed448Point(publicKeyBytes); // Construct the public key
+    
             boolean isValid = EllipticCurveEncryptor.verifySignature(data, signature, publicKey);
             if (isValid) {
                 System.out.println("Signature is valid.");

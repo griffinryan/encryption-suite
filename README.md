@@ -6,7 +6,9 @@
 
 - Able to hash a given file or user text input.
 
-_TODO: implement a file encryption/decryption feature_
+- Able to encrypt/decrypt a given file or text input using DHIES encryption and Schnorr signatures with elliptic curves.
+
+_TODO: implement a file signing/verification feature_
 
 ---
 
