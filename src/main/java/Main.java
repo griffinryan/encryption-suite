@@ -1,6 +1,7 @@
 /**
  * Main.java
  * @author Griffin Ryan (glryan@uw.edu)
+ * @version 12/7/2023
  */
 import java.util.Scanner;
 import java.io.IOException;
@@ -9,6 +10,12 @@ import java.nio.file.Paths;
 import java.nio.file.Files;
 import java.math.BigInteger;
 
+/**
+ * Main class to run the program.
+ * The encryption-suite project is a command-line tool for encrypting, decrypting, signing, and verifying data.
+ * It uses the Ed448 curve and the EdDSA signature scheme.
+ * @see EllipticCurveEncryptor
+ */
 public class Main {
 
     public static void main(String[] args) throws IOException {
@@ -44,6 +51,10 @@ public class Main {
         }
     }
 
+    /**
+     * Method to handle decryption.
+     * @param scanner
+     */
     private static void handleDecryption(Scanner scanner) {
         try {
             System.out.println("Enter the path to the encrypted file:");
@@ -68,6 +79,10 @@ public class Main {
         }
     }    
 
+    /**
+     * Method to handle encryption.
+     * @param scanner
+     */
     private static void handleEncryption(Scanner scanner) {
         try {
             System.out.println("Encrypt from file (F) or text input (T)?");
@@ -103,6 +118,10 @@ public class Main {
         }
     }    
 
+    /**
+     * Method to handle key pair generation.
+     * @param scanner
+     */
     private static void handleKeyPairGeneration(Scanner scanner) {
         try {
             System.out.println("Enter a passphrase for key pair generation:");
@@ -115,6 +134,10 @@ public class Main {
         }
     }
 
+    /**
+     * Method to handle signing.
+     * @param scanner
+     */
     private static void handleSigning(Scanner scanner) {
         try {
             System.out.println("Enter the path to the data file to sign:");
@@ -141,6 +164,10 @@ public class Main {
         }
     }
 
+    /**
+     * Method to handle verification.
+     * @param scanner
+     */
     private static void handleVerification(Scanner scanner) {
         try {
             System.out.println("Enter the path to the data file to verify:");
@@ -168,7 +195,11 @@ public class Main {
         }
     }
 
-    // Method to convert byte array to hex string (for displaying the signature)
+    /**
+     * Method to convert a byte array to a hex string.
+     * @param bytes
+     * @return
+     */
     private static String bytesToHex(byte[] bytes) {
         StringBuilder hexString = new StringBuilder();
         for (byte b : bytes) {

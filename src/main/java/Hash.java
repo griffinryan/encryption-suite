@@ -1,13 +1,24 @@
 /**
  * Hash.java
  * @author Griffin Ryan (glryan@uw.edu)
+ * @version 12/7/2023
  */
-
 import java.security.MessageDigest;
 import java.util.Arrays;
 
+/**
+ * Class to compute SHA-256, cSHAKE256, and KMACXOF256 hashes.
+ * @see EllipticCurveEncryptor
+ * @see Keccak
+ * @see Ed448Point
+ */
 public class Hash {
 
+    /**
+     * Method to compute SHA-256 hash.
+     * @param input
+     * @return
+     */
     public byte[] computeSHA256(byte[] input) {
         try {
             MessageDigest md = MessageDigest.getInstance("SHA-256");
@@ -17,6 +28,14 @@ public class Hash {
         }
     }
 
+    /**
+     * Method to compute cSHAKE256 hash.
+     * @param input
+     * @param outputLength
+     * @param n
+     * @param s
+     * @return
+     */
     public byte[] cSHAKE256(byte[] input, int outputLength, byte[] n, byte[] s) {
         // Encode the 'n' and 's' parameters
         byte[] encodedN = encodeString(n);
@@ -38,6 +57,14 @@ public class Hash {
         return keccak.squeeze(outputLength);
     }
 
+    /**
+     * Method to compute KMACXOF256 hash.
+     * @param key
+     * @param data
+     * @param outputLength
+     * @param s
+     * @return
+     */
     public byte[] KMACXOF256(byte[] key, byte[] data, int outputLength, byte[] s) {
         // newXOF is initialized with cSHAKE's padding bits 04.
         byte[] newXOF = {(byte) 0x04};
@@ -58,13 +85,23 @@ public class Hash {
         return cSHAKE256(concatenated, outputLength, new byte[0], s);
     }
 
+    /**
+     * Method to compute MAC.
+     * @param key
+     * @param data
+     * @param customizationString
+     * @return
+     */
     public byte[] computeMAC(byte[] key, byte[] data, byte[] customizationString) {
         int outputLength = 256; // Define the desired output length for the MAC in bits
         return KMACXOF256(key, data, outputLength, customizationString);
     }
-    
-    
-    // Helper method for rightEncode
+
+    /**
+     * Method to compute hash.
+     * @param x
+     * @return
+     */
     private byte[] rightEncode(int x) {
         if (x == 0) {
             return new byte[]{1, 0};
@@ -80,6 +117,11 @@ public class Hash {
         return rightEncoded;
     }
 
+    /**
+     * Method to compute hash.
+     * @param len
+     * @return
+     */
     private byte[] leftEncode(int len) {
         // Find out the number of bits needed to represent the length
         int n = 1;
@@ -91,7 +133,12 @@ public class Hash {
         }
         return encoding;
     }
-    
+
+    /**
+     * Method to compute hash.
+     * @param str
+     * @return
+     */
     private byte[] encodeString(byte[] str) {
         byte[] len = leftEncode(str.length * 8); // Length is encoded in bits
         byte[] encoding = new byte[len.length + str.length];
@@ -99,8 +146,13 @@ public class Hash {
         System.arraycopy(str, 0, encoding, len.length, str.length);
         return encoding;
     }
-    
-    // Helper method for bytepad
+
+    /**
+     * Method to compute hash.
+     * @param X
+     * @param w
+     * @return
+     */
     private byte[] bytepad(byte[] X, int w) {
         byte[] z = new byte[((X.length + w - 1) / w) * w];
         byte[] encodedW = leftEncode(w); // w is encoded as a left-encoded string
@@ -141,11 +193,17 @@ public class Hash {
             0x0000000080000001L, 0x8000000080008008L
         };        
 
+        /**
+         * Constructor for Keccak.
+         */
         public Keccak() {
             // Initialize the state array
             Arrays.fill(state, 0);
         }
 
+        /**
+         * Method to perform theta step.
+         */
         private void theta() {
             long[] C = new long[5];
             long[] D = new long[5];
@@ -169,6 +227,9 @@ public class Hash {
             }
         }        
 
+        /**
+         * Method to perform rho step.
+         */
         private void rho() {
             // Define the rotation offsets for each position
             int[][] offsets = {
@@ -188,6 +249,9 @@ public class Hash {
             }
         }
 
+        /**
+         * Method to perform pi step.
+         */
         private void pi() {
             long[] tempState = Arrays.copyOf(state, state.length);
         
@@ -200,6 +264,9 @@ public class Hash {
             }
         }        
 
+        /**
+         * Method to perform chi step.
+         */
         private void chi() {
             long[] tempState = Arrays.copyOf(state, state.length);
         
@@ -210,12 +277,22 @@ public class Hash {
                 }
             }
         }
-        
+
+        /**
+         * Method to perform iota step.
+         * @param round
+         */
         private void iota(int round) {
             // Implementation of the iota step for the given round
             state[0] ^= ROUND_CONSTANTS[round];
         }
 
+        /**
+         * Method to pad the message.
+         * @param message
+         * @param rateInBytes
+         * @return
+         */
         public byte[] pad(byte[] message, int rateInBytes) {
             // Determine the length of padding needed to extend the message so that
             // it is a multiple of the rate (in bytes)
@@ -235,8 +312,11 @@ public class Hash {
         
             return paddedMessage;
         }
-            
 
+        /**
+         * Method to absorb the message.
+         * @param message
+         */
         private void absorb(byte[] message) {
             int blockSize = RATE / 8; // Convert rate from bits to bytes
         
@@ -248,8 +328,13 @@ public class Hash {
                 // Apply the permutation function
                 permutation();
             }
-        }        
+        }
 
+        /**
+         * Method to squeeze the message.
+         * @param outputLength
+         * @return
+         */
         private byte[] squeeze(int outputLength) {
             int blockSize = RATE / 8; // Convert rate from bits to bytes
             byte[] output = new byte[outputLength / 8];
@@ -270,6 +355,9 @@ public class Hash {
             return output;
         }
 
+        /**
+         * Method to perform the permutation.
+         */
         public void permutation() {
             for (int round = 0; round < NUM_ROUNDS; round++) {
                 theta();
@@ -279,11 +367,23 @@ public class Hash {
                 iota(round);
             }
         }
-        
+
+        /**
+         * Method to rotate left.
+         * @param l
+         * @param offset
+         * @return
+         */
         private long rotateLeft(long l, int offset) {
             return (l << offset) | (l >>> (64 - offset));
         }
 
+        /**
+         * Method to compute the Keccak hash.
+         * @param message
+         * @param outputLength
+         * @return
+         */
         public byte[] keccak(byte[] message, int outputLength) {
             // Perform the keccak hash calculation
             absorb(message);
