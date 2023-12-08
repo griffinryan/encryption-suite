@@ -64,8 +64,41 @@ public class EllipticCurveEncryptor {
         }
     
         return combined;
+    }
+
+    public static boolean verifySignature(byte[] data, byte[] signature, Ed448Point publicKey) throws Exception {
+        // Extract R and s from the signature
+        // This depends on how you serialized them in the signData method
+        Ed448Point R = extractR(signature);
+        BigInteger s = extractS(signature);
+
+        // Hash computation
+        Hash hash = new Hash();
+        byte[] concatenatedData = concatenate(R.toBytes(), publicKey.toBytes(), data);
+        BigInteger e = new BigInteger(1, hash.computeSHA256(concatenatedData));
+
+        // Verification equation
+        Ed448Point G = basePoint; // Assuming basePoint is the base point of the curve
+        Ed448Point leftSide = G.scalarMultiply(s);
+        Ed448Point rightSide = publicKey.scalarMultiply(e).add(R);
+
+        return leftSide.equals(rightSide);
+    }
+
+    private static Ed448Point extractR(byte[] signature) throws Exception {
+        // Assuming R is the first part of the signature and has a fixed length
+        int rLength = 112; // Adjust based on your R representation (56 for compressed, 112 for uncompressed)
+        byte[] rBytes = Arrays.copyOfRange(signature, 0, rLength);
+        return new Ed448Point(rBytes); // Constructing R from bytes
     }    
 
+    private static BigInteger extractS(byte[] signature) {
+        int rLength = 112; // Must match the length used in extractR
+        int sLength = 112; // Length of s scalar for Ed448
+        byte[] sBytes = Arrays.copyOfRange(signature, rLength, rLength + sLength);
+        return new BigInteger(1, sBytes); // Constructing s from bytes
+    }
+    
     public static byte[] decryptData(byte[] encryptedDataWithPublicKeyAndTag, BigInteger recipientPrivateKey) {
         try {
             // Extract the ephemeral public key and encrypted data
