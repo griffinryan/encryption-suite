@@ -1,0 +1,34 @@
+
+plugins {
+    id 'java'
+    id 'application'
+}
+
+mainClassName = 'Main'
+
+repositories {
+    jcenter()
+}
+
+dependencies {
+    implementation 'com.google.guava:guava:30.1.1-jre'
+    testImplementation 'junit:junit:4.13.2'
+}
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
+}
+
+// task run(type: JavaExec) {
+//     main = 'Main' // If Main is in the default package, otherwise use 'your.package.Main'
+//     classpath = sourceSets.main.runtimeClasspath
+// }
+
+// sourceSets {
+//     main {
+//         java {
+//             srcDirs = ['src'] // Or wherever your Java files are
+//         }
+//     }
+// }
