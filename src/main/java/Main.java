@@ -14,6 +14,8 @@ import java.math.BigInteger;
  * Main class to run the program.
  * The encryption-suite project is a command-line tool for encrypting, decrypting, signing, and verifying data.
  * It uses the Ed448 curve and the EdDSA signature scheme.
+ * 
+ * Do the signature, then encrypt, then decrypt, then verify.
  * @see EllipticCurveEncryptor
  */
 public class Main {
