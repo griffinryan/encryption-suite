@@ -147,7 +147,7 @@ public class EllipticCurveEncryptor {
      */
     private static BigInteger extractS(byte[] signature) {
         int rLength = 112; // Must match the length used in extractR
-        int sLength = 112; // Length of s scalar for Ed448
+        int sLength = 56; // Length of s scalar for Ed448
         byte[] sBytes = Arrays.copyOfRange(signature, rLength, rLength + sLength);
         return new BigInteger(1, sBytes); // Constructing s from bytes
     }
@@ -444,6 +444,29 @@ public class EllipticCurveEncryptor {
         Files.write(Paths.get(filePath), encryptedPrivateKey, StandardOpenOption.CREATE);
     }
 
+    /**
+     * Method to help send to byte array with a fixed length.
+     * @param number
+     * @param length
+     * @return
+     */
+    private static byte[] toByteArrayFixedLength(BigInteger number, int length) {
+        byte[] byteArray = number.toByteArray();
+    
+        // If the byteArray length is less than the required length, pad it with zeros
+        if (byteArray.length < length) {
+            byte[] paddedArray = new byte[length];
+            System.arraycopy(byteArray, 0, paddedArray, length - byteArray.length, byteArray.length);
+            return paddedArray;
+        } else if (byteArray.length > length) {
+            // If the byteArray length is more than the required length, truncate it
+            return Arrays.copyOfRange(byteArray, byteArray.length - length, byteArray.length);
+        }
+    
+        // If the length is already correct, return the array as is
+        return byteArray;
+    }
+    
     /**
      * Inner class to represent a key pair.
      */
