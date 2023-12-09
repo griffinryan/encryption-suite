@@ -3,6 +3,5 @@
 *.bin
 bin/
 .vscode/
-*.pdf
 build/
 .gradle/
