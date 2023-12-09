@@ -31,13 +31,6 @@ public class EllipticCurveEncryptor {
 
     public static final Ed448Point basePoint = new Ed448Point();
 
-    /**
-     * Method to handle signing data.
-     * @param data
-     * @param privateKey
-     * @return
-     * @throws Exception
-     */
     public static byte[] signData(byte[] data, BigInteger privateKey) throws Exception {
         SecureRandom random = new SecureRandom();
         // Step 1: Generate random scalar k
@@ -53,33 +46,17 @@ public class EllipticCurveEncryptor {
         return concatenate(R.toBytes(), s.toByteArray());
     }
 
-    /**
-     * Method to help sign data.
-     * @param data
-     * @return
-     * @throws Exception
-     */
     private static BigInteger hashData(byte[] data) throws Exception {
         Hash hash = new Hash();
         byte[] hashBytes = hash.computeSHA256(data);
         return new BigInteger(1, hashBytes);
     }
 
-    /**
-     * Method to handle verification of data.
-     * @param privateKey
-     * @return
-     */
     private static Ed448Point derivePublicKey(BigInteger privateKey) {
         // Assuming basePoint is the base point of the curve
         return basePoint.scalarMultiply(privateKey);
     }
 
-    /**
-     * Method to concatenate byte arrays.
-     * @param arrays
-     * @return
-     */
     private static byte[] concatenate(byte[]... arrays) {
         // First, calculate the total length of the combined array
         int totalLength = 0;
@@ -100,14 +77,6 @@ public class EllipticCurveEncryptor {
         return combined;
     }
 
-    /**
-     * Method to verify a signature on data.
-     * @param data
-     * @param signature
-     * @param publicKey
-     * @return
-     * @throws Exception
-     */
     public static boolean verifySignature(byte[] data, byte[] signature, Ed448Point publicKey) throws Exception {
         // Extract R and s from the signature
         // This depends on how you serialized them in the signData method
@@ -127,12 +96,6 @@ public class EllipticCurveEncryptor {
         return leftSide.equals(rightSide);
     }
 
-    /**
-     * Method to extract R from a signature.
-     * @param signature
-     * @return
-     * @throws Exception
-     */
     private static Ed448Point extractR(byte[] signature) throws Exception {
         // Assuming R is the first part of the signature and has a fixed length
         int rLength = 112; // Adjust based on your R representation (56 for compressed, 112 for uncompressed)
@@ -140,11 +103,6 @@ public class EllipticCurveEncryptor {
         return new Ed448Point(rBytes); // Constructing R from bytes
     }    
 
-    /**
-     * Method to extract s from a signature.
-     * @param signature
-     * @return
-     */
     private static BigInteger extractS(byte[] signature) {
         int rLength = 112; // Must match the length used in extractR
         int sLength = 56; // Length of s scalar for Ed448
@@ -152,12 +110,6 @@ public class EllipticCurveEncryptor {
         return new BigInteger(1, sBytes); // Constructing s from bytes
     }
 
-    /**
-     * Method to handle deencryption of data.
-     * @param encryptedDataWithPublicKeyAndTag
-     * @param recipientPrivateKey
-     * @return
-     */
     public static byte[] decryptData(byte[] encryptedDataWithPublicKeyAndTag, BigInteger recipientPrivateKey) {
         try {
             // Extract the ephemeral public key and encrypted data
@@ -190,13 +142,6 @@ public class EllipticCurveEncryptor {
         }
     }
 
-    /**
-     * Method to help decrypt data.
-     * @param encryptedData
-     * @param key
-     * @return
-     * @throws Exception
-     */
     private static byte[] symmetricDecrypt(byte[] encryptedData, byte[] key) throws Exception {
         // Ensure the key is of valid AES key length, e.g., 256 bits
         byte[] keyBytes = Arrays.copyOf(key, 32); // for AES-256
@@ -208,12 +153,6 @@ public class EllipticCurveEncryptor {
         return cipher.doFinal(encryptedData);
     }    
 
-    /**
-     * Method to help decrypt data.
-     * @param data
-     * @return
-     * @throws Exception
-     */
     private static Ed448Point extractEphemeralPublicKey(byte[] data) throws Exception {
         // Assuming the ephemeral public key is at the beginning and has a fixed length
         // If using compressed format: publicKeyLength = 56;
@@ -223,11 +162,7 @@ public class EllipticCurveEncryptor {
         return new Ed448Point(publicKeyBytes); // Assuming Ed448Point has a constructor that accepts byte array
     }
     
-    /**
-     * Method to help decrypt data.
-     * @param data
-     * @return
-     */
+
     private static byte[] extractEncryptedData(byte[] data) {
         int publicKeyLength = 112; // Same as used in extractEphemeralPublicKey
         int tagLength = 32; // Assuming a 256-bit tag
@@ -236,23 +171,11 @@ public class EllipticCurveEncryptor {
         return Arrays.copyOfRange(data, publicKeyLength, publicKeyLength + encryptedDataLength);
     }
 
-    /**
-     * Method to help decrypt data.
-     * @param data
-     * @return
-     */
     private static byte[] extractAuthenticationTag(byte[] data) {
         int tagLength = 32; // Assuming a 256-bit tag
         return Arrays.copyOfRange(data, data.length - tagLength, data.length);
     }
 
-    /**
-     * Method to handle encryption of data.
-     * @param data
-     * @param recipientPublicKey
-     * @return
-     * @throws Exception
-     */
     public static byte[] encryptData(byte[] data, Ed448Point recipientPublicKey) throws Exception {
         // 1. Generate ephemeral key pair
         KeyPair ephemeralKeyPair = generateEphemeralKeyPair();
@@ -277,11 +200,6 @@ public class EllipticCurveEncryptor {
         return combineEphemeralPublicKeyAndData(ephemeralPublicKey, encryptedData, authenticationTag);
     }
 
-    /**
-     * Method to help encrypt data.
-     * @return
-     * @throws Exception
-     */
     private static KeyPair generateEphemeralKeyPair() throws Exception {
         // Generate a random private key
         // Assuming basePoint is the generator point of the curve
@@ -291,25 +209,12 @@ public class EllipticCurveEncryptor {
         return new KeyPair(privateKey, publicKey);
     }
 
-    /**
-     * Method to help encrypt data using a key agreement.
-     * @param privateKey
-     * @param publicKey
-     * @return
-     */
     private static BigInteger performKeyAgreement(BigInteger privateKey, Ed448Point publicKey) {
         // Multiply the public key with the private key to get the shared secret
         Ed448Point sharedSecretPoint = publicKey.scalarMultiply(privateKey);
         return sharedSecretPoint.getY(); // Assuming getY() returns the y-coordinate
     }
 
-    /**
-     * Method to help encrypt data using a symmetric encryption.
-     * @param data
-     * @param key
-     * @return
-     * @throws Exception
-     */
     private static byte[] symmetricEncrypt(byte[] data, byte[] key) throws Exception {
         SecretKey secretKey = new SecretKeySpec(key, "AES");
         Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
@@ -317,13 +222,6 @@ public class EllipticCurveEncryptor {
         return cipher.doFinal(data);
     }
 
-    /**
-     * Method to help encrypt data using a symmetric encryption.
-     * @param ephemeralPublicKey
-     * @param encryptedData
-     * @param authenticationTag
-     * @return
-     */
     private static byte[] combineEphemeralPublicKeyAndData(Ed448Point ephemeralPublicKey, byte[] encryptedData, byte[] authenticationTag) {
         byte[] publicKeyBytes = ephemeralPublicKey.toBytes(); // Assuming toBytes() serializes the point
         byte[] combined = new byte[publicKeyBytes.length + encryptedData.length + authenticationTag.length];
@@ -335,12 +233,6 @@ public class EllipticCurveEncryptor {
         return combined;
     }
 
-    /**
-     * Method to generate a key pair.
-     * @param passphrase
-     * @return
-     * @throws Exception
-     */
     public static KeyPair generateKeyPair(String passphrase) throws Exception {
         BigInteger privateKey = derivePrivateKey(passphrase);
         Ed448Point publicKey = basePoint.scalarMultiply(privateKey);
@@ -355,12 +247,6 @@ public class EllipticCurveEncryptor {
         return new KeyPair(privateKey, publicKey);
     }
 
-    /**
-     * Method to derive a private key.
-     * @param passphrase
-     * @return
-     * @throws Exception
-     */
     public static BigInteger derivePrivateKey(String passphrase) throws Exception {
         // Use PBKDF2 with HMAC-SHA256 as the PRF
         SecretKeyFactory factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256");
@@ -369,13 +255,6 @@ public class EllipticCurveEncryptor {
         return new BigInteger(1, tmp.getEncoded());
     }
 
-    /**
-     * Method to encrypt a private key.
-     * @param privateKey
-     * @param passphrase
-     * @return
-     * @throws Exception
-     */
     private static byte[] encryptPrivateKey(byte[] privateKey, String passphrase) throws Exception {
     // Generate a key for encryption
         SecretKey secret = deriveSecretKey(passphrase);
@@ -390,12 +269,6 @@ public class EllipticCurveEncryptor {
         return cipher.doFinal(privateKey);
     }
 
-    /**
-     * Method to decrypt a private key by using a passphrase.
-     * @param passphrase
-     * @return
-     * @throws Exception
-     */
     private static SecretKey deriveSecretKey(String passphrase) throws Exception {
         // Use PBKDF2 with HMAC-SHA256 as the PRF
         SecretKeyFactory factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256");
@@ -403,53 +276,27 @@ public class EllipticCurveEncryptor {
         return factory.generateSecret(spec);
     }
 
-    /**
-     * Method to decrypt a private key by using a passphrase.
-     * @return
-     */
     private static byte[] getSalt() {
         byte[] salt = new byte[16];
         new SecureRandom().nextBytes(salt);
         return salt;
     }
 
-    /**
-     * Method to get a new IV byte aray.
-     * @return
-     */
     private static byte[] getIV() {
         byte[] iv = new byte[16]; // AES block size
         new SecureRandom().nextBytes(iv);
         return iv;
     }
 
-    /**
-     * Method to write a public key to a file.
-     * @param publicKey
-     * @param filePath
-     * @throws Exception
-     */
     public static void writePublicKeyToFile(Ed448Point publicKey, String filePath) throws Exception {
         String publicKeyString = publicKey.toString(); // Convert to a string or byte format as needed
         Files.write(Paths.get(filePath), publicKeyString.getBytes(), StandardOpenOption.CREATE);
     }
 
-    /**
-     * Method to write an encrypted private key to a file.
-     * @param encryptedPrivateKey
-     * @param filePath
-     * @throws Exception
-     */
     public static void writeEncryptedPrivateKeyToFile(byte[] encryptedPrivateKey, String filePath) throws Exception {
         Files.write(Paths.get(filePath), encryptedPrivateKey, StandardOpenOption.CREATE);
     }
 
-    /**
-     * Method to help send to byte array with a fixed length.
-     * @param number
-     * @param length
-     * @return
-     */
     private static byte[] toByteArrayFixedLength(BigInteger number, int length) {
         byte[] byteArray = number.toByteArray();
     
@@ -467,9 +314,6 @@ public class EllipticCurveEncryptor {
         return byteArray;
     }
     
-    /**
-     * Inner class to represent a key pair.
-     */
     public static class KeyPair {
         public final BigInteger privateKey;
         public final Ed448Point publicKey;
